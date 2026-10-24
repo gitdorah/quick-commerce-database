@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 120" role="img" aria-label="Bottle of cola">
+  <ellipse cx="80" cy="112" rx="22" ry="4" fill="#000" opacity=".08"/>
+  <rect x="73" y="6" width="14" height="8" rx="2" fill="#c62828"/>
+  <path d="M74 14 h12 v12 q12 10 12 26 v52 q0 6 -6 6 h-24 q-6 0 -6 -6 v-52 q0 -16 12 -26 Z" fill="#4a2a1a"/>
+  <rect x="62" y="58" width="36" height="22" fill="#d32f2f"/>
+  <path d="M66 72 q14 -10 28 0" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round"/>
+  <rect x="68" y="30" width="4" height="22" rx="2" fill="#fff" opacity=".35"/>
+</svg>

@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 120" role="img" aria-label="Bottle of liquid detergent">
+  <ellipse cx="80" cy="112" rx="34" ry="5" fill="#000" opacity=".08"/>
+  <rect x="74" y="8" width="20" height="12" rx="3" fill="#ec835a"/>
+  <path d="M60 28 q0 -8 8 -8 h32 q8 0 8 8 v76 q0 6 -6 6 h-36 q-6 0 -6 -6 Z" fill="#2a78d6"/>
+  <path d="M100 32 h10 q8 0 8 8 v22 q0 8 -8 8 h-10" fill="none" stroke="#2a78d6" stroke-width="7"/>
+  <rect x="64" y="48" width="36" height="40" rx="6" fill="#fff"/>
+  <circle cx="76" cy="64" r="6" fill="#86b6ef"/><circle cx="88" cy="72" r="5" fill="#b7d3f6"/><circle cx="78" cy="78" r="4" fill="#cde2fb"/>
+</svg>

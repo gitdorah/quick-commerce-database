@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 120" role="img" aria-label="Packet of salt">
+  <ellipse cx="80" cy="112" rx="34" ry="5" fill="#000" opacity=".08"/>
+  <path d="M52 22 h56 l-4 -8 h-48 Z" fill="#c62828"/>
+  <rect x="52" y="22" width="56" height="86" rx="4" fill="#ffffff" stroke="#e1d9d9" stroke-width="2"/>
+  <rect x="52" y="44" width="56" height="24" fill="#2a78d6"/>
+  <text x="80" y="61" text-anchor="middle" font-family="system-ui,sans-serif" font-size="13" font-weight="800" fill="#fff">SALT</text>
+  <circle cx="70" cy="86" r="3" fill="#c9d8ea"/><circle cx="82" cy="92" r="3" fill="#c9d8ea"/><circle cx="92" cy="82" r="3" fill="#c9d8ea"/>
+  <text x="80" y="102" text-anchor="middle" font-family="system-ui,sans-serif" font-size="8" fill="#52514e">1 kg</text>
+</svg>

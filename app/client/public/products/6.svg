@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 120" role="img" aria-label="Packet of instant noodles">
+  <ellipse cx="80" cy="110" rx="50" ry="5" fill="#000" opacity=".08"/>
+  <path d="M28 30 l4 -6 h96 l4 6 v54 l-4 6 h-96 l-4 -6 Z" fill="#f5c400"/>
+  <rect x="34" y="34" width="44" height="14" rx="3" fill="#d32f2f"/>
+  <text x="56" y="45" text-anchor="middle" font-family="system-ui,sans-serif" font-size="9" font-weight="800" fill="#fff">NOODLES</text>
+  <ellipse cx="104" cy="66" rx="20" ry="12" fill="#fff" stroke="#e0a800" stroke-width="2"/>
+  <path d="M88 64 q4 -6 8 0 t8 0 t8 0 t8 0 M90 70 q4 -6 8 0 t8 0 t8 0" fill="none" stroke="#e8a33d" stroke-width="2.5" stroke-linecap="round"/>
+  <rect x="38" y="58" width="30" height="4" rx="2" fill="#fff" opacity=".7"/>
+  <rect x="38" y="66" width="22" height="4" rx="2" fill="#fff" opacity=".7"/>
+</svg>

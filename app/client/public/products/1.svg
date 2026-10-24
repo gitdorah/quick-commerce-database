@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 120" role="img" aria-label="Milk carton">
+  <ellipse cx="80" cy="110" rx="34" ry="5" fill="#000" opacity=".08"/>
+  <path d="M56 38 L66 18 H94 L104 38 Z" fill="#dce9f7"/>
+  <rect x="66" y="12" width="28" height="8" rx="2" fill="#2a78d6"/>
+  <rect x="56" y="38" width="48" height="70" rx="4" fill="#ffffff" stroke="#c9d8ea" stroke-width="2"/>
+  <rect x="56" y="58" width="48" height="26" fill="#2a78d6"/>
+  <text x="80" y="76" text-anchor="middle" font-family="system-ui,sans-serif" font-size="13" font-weight="700" fill="#fff">MILK</text>
+  <path d="M64 96 q8 -6 16 0 t16 0" fill="none" stroke="#86b6ef" stroke-width="3" stroke-linecap="round"/>
+</svg>

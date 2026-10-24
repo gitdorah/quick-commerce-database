@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 120" role="img" aria-label="Packet of biscuits">
+  <ellipse cx="80" cy="108" rx="56" ry="5" fill="#000" opacity=".08"/>
+  <path d="M22 36 l6 -6 h104 l6 6 v52 l-6 6 h-104 l-6 -6 Z" fill="#f4d35e"/>
+  <rect x="28" y="40" width="40" height="44" rx="4" fill="#fff8dc"/>
+  <text x="48" y="58" text-anchor="middle" font-family="system-ui,sans-serif" font-size="8" font-weight="800" fill="#b8732f">GLUCOSE</text>
+  <text x="48" y="70" text-anchor="middle" font-family="system-ui,sans-serif" font-size="8" font-weight="800" fill="#b8732f">BISCUITS</text>
+  <rect x="78" y="46" width="44" height="32" rx="4" fill="#e3a857" stroke="#b8732f" stroke-width="2"/>
+  <rect x="86" y="52" width="44" height="32" rx="4" fill="#ecbb6e" stroke="#b8732f" stroke-width="2"/>
+  <circle cx="98" cy="62" r="1.8" fill="#b8732f"/><circle cx="108" cy="62" r="1.8" fill="#b8732f"/><circle cx="118" cy="62" r="1.8" fill="#b8732f"/>
+  <circle cx="98" cy="74" r="1.8" fill="#b8732f"/><circle cx="108" cy="74" r="1.8" fill="#b8732f"/><circle cx="118" cy="74" r="1.8" fill="#b8732f"/>
+</svg>

@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 120" role="img" aria-label="Packet of potato chips">
+  <ellipse cx="80" cy="112" rx="36" ry="5" fill="#000" opacity=".08"/>
+  <path d="M50 14 h60 l-4 8 l4 8 v62 l4 8 l-4 8 h-60 l-4 -8 l4 -8 v-62 l-4 -8 Z" fill="#f2b705"/>
+  <rect x="50" y="34" width="60" height="18" fill="#e34948"/>
+  <text x="80" y="47" text-anchor="middle" font-family="system-ui,sans-serif" font-size="11" font-weight="800" fill="#fff">CHIPS</text>
+  <ellipse cx="72" cy="74" rx="13" ry="9" fill="#fbe08a" stroke="#d99a00" stroke-width="2" transform="rotate(-15 72 74)"/>
+  <ellipse cx="90" cy="82" rx="13" ry="9" fill="#fde9a8" stroke="#d99a00" stroke-width="2" transform="rotate(20 90 82)"/>
+</svg>

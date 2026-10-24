@@ -1,0 +1,20 @@
+{
+  "name": "quick-commerce-app",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Full-stack quick-commerce application on the QuickCommerceDB MySQL database",
+  "workspaces": [
+    "server",
+    "client"
+  ],
+  "scripts": {
+    "dev": "concurrently -k -n server,client -c blue,green \"npm run dev -w server\" \"npm run dev -w client\"",
+    "build": "npm run build -w client",
+    "start": "npm start -w server",
+    "db:setup": "npm run db:setup -w server",
+    "test": "npm test -w server"
+  },
+  "devDependencies": {
+    "concurrently": "^10.0.6"
+  }
+}

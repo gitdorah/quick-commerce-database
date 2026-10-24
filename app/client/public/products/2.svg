@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 120" role="img" aria-label="Loaf of bread">
+  <ellipse cx="80" cy="108" rx="52" ry="6" fill="#000" opacity=".08"/>
+  <path d="M32 60 q0 -30 48 -30 q48 0 48 30 v38 q0 8 -8 8 h-80 q-8 0 -8 -8 Z" fill="#d9944a"/>
+  <path d="M38 62 q0 -24 42 -24 q42 0 42 24 v34 q0 4 -4 4 h-76 q-4 0 -4 -4 Z" fill="#f3d2a2"/>
+  <path d="M58 44 q-6 10 0 20 M80 40 q-6 12 0 24 M102 44 q-6 10 0 20" fill="none" stroke="#b8732f" stroke-width="3" stroke-linecap="round"/>
+</svg>
