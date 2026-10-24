@@ -1,9 +1,9 @@
-// Rebuilds QuickCommerceDB from the SQL files in the repository root.
+// Rebuilds QuickCommerceDB from the SQL scripts in database/.
 //
 //   npm run db:setup
 //
 // WARNING: drops the existing QuickCommerceDB database first, because
-// create_db_insert_data.sql issues a plain CREATE DATABASE.
+// 01_create_db_insert_data.sql issues a plain CREATE DATABASE.
 
 import fs from 'node:fs';
 import path from 'node:path';
@@ -12,21 +12,21 @@ import mysql from 'mysql2/promise';
 import {
   APP_DB_USER,
   DB_NAME,
-  REPO_ROOT,
+  DATABASE_DIR,
   adminConnectionOptions,
   appConnectionOptions,
   describeTarget,
 } from '../src/config.js';
 
 const SQL_FILES = [
-  'create_db_insert_data.sql',
-  'advanced_database_programming.sql',
-  'database_security.sql',
-  'application_procedures.sql',
+  '01_create_db_insert_data.sql',
+  '03_advanced_database_programming.sql',
+  '05_database_security.sql',
+  '06_application_procedures.sql',
 ];
 
 // The course files end with demonstration queries and test CALLs (for example
-// Part D of advanced_database_programming.sql places an order). Setup skips
+// Part D of 03_advanced_database_programming.sql places an order). Setup skips
 // them so that rebuilding the database has no side effects.
 const DEMO_STATEMENT = /^(SELECT|CALL|SHOW)\b/i;
 
@@ -99,7 +99,7 @@ export async function setupDatabase({ log = console.log } = {}) {
     await connection.query(`DROP DATABASE IF EXISTS ${DB_NAME}`);
 
     for (const file of SQL_FILES) {
-      const statements = splitStatements(fs.readFileSync(path.join(REPO_ROOT, file), 'utf8'));
+      const statements = splitStatements(fs.readFileSync(path.join(DATABASE_DIR, file), 'utf8'));
       let executed = 0;
       let skipped = 0;
 
@@ -119,7 +119,7 @@ export async function setupDatabase({ log = console.log } = {}) {
       log(`  ${file}: ${executed} statements executed, ${skipped} demo/test statements skipped`);
     }
 
-    // database_security.sql ships with a placeholder password; apply the real one.
+    // 05_database_security.sql ships with a placeholder password; apply the real one.
     try {
       await connection.query('ALTER USER ?@? IDENTIFIED BY ?', [APP_DB_USER, 'localhost', appPassword]);
     } catch (err) {

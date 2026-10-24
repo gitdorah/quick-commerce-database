@@ -225,7 +225,7 @@ test('naive stress test oversells, but only in the sandbox', async () => {
   assert.deepEqual(await stock(BANDRA, COLA), before);
 });
 
-test('every query in sql_queries.sql runs from the Reports API', async () => {
+test('every query in 02_sql_queries.sql runs from the Reports API', async () => {
   const list = await api('/reports');
   assert.equal(list.body.length, 12);
   for (const report of list.body) {
@@ -242,4 +242,72 @@ test('qc_app cannot modify tables directly', async () => {
   } finally {
     await connection.end();
   }
+});
+
+// ---------------------------------------------------------------------------
+// Transactions & security page
+// ---------------------------------------------------------------------------
+
+async function orderCount() {
+  const [[row]] = await pool.query('SELECT COUNT(*) AS n FROM `Order`');
+  return row.n;
+}
+
+const demoTarget = { customerId: 2, darkStoreId: ANDHERI, productId: MILK };
+
+test('ROLLBACK demo shows uncommitted changes, then leaves nothing behind', async () => {
+  const ordersBefore = await orderCount();
+  const milkBefore = await stock(ANDHERI, MILK);
+
+  const { status, body } = await api('/demo/transactions/rollback', { method: 'POST', body: demoTarget });
+  assert.equal(status, 200);
+  const inside = body.steps.at(-2);
+  const last = body.steps.at(-1);
+  assert.equal(inside.orders, ordersBefore + 1);
+  assert.equal(inside.available, milkBefore.Available - 1);
+  assert.equal(last.orders, ordersBefore);
+  assert.equal(last.available, milkBefore.Available);
+
+  assert.equal(await orderCount(), ordersBefore);
+  assert.deepEqual(await stock(ANDHERI, MILK), milkBefore);
+});
+
+test('COMMIT demo saves an order that can then be cancelled', async () => {
+  const milkBefore = await stock(ANDHERI, MILK);
+  const { body } = await api('/demo/transactions/commit', { method: 'POST', body: demoTarget });
+  assert.ok(body.orderId);
+  assert.equal(body.steps.at(-1).lines, 1);
+  assert.equal((await stock(ANDHERI, MILK)).Available, milkBefore.Available - 1);
+
+  assert.equal((await api(`/orders/${body.orderId}/cancel`, { method: 'POST' })).status, 200);
+  assert.deepEqual(await stock(ANDHERI, MILK), milkBefore);
+});
+
+test('SAVEPOINT demo keeps the first line and undoes the second', async () => {
+  const breadBefore = await stock(ANDHERI, BREAD);
+  const { body } = await api('/demo/transactions/savepoint', {
+    method: 'POST',
+    body: { ...demoTarget, secondProductId: BREAD },
+  });
+  const order = await api(`/orders/${body.orderId}`);
+  assert.deepEqual(order.body.items.map((item) => item.ProductID), [MILK]);
+  assert.deepEqual(await stock(ANDHERI, BREAD), breadBefore);
+  await api(`/orders/${body.orderId}/cancel`, { method: 'POST' });
+});
+
+test('every guard rail is refused by MySQL', async () => {
+  const { body: guards } = await api('/demo/guards');
+  const expected = ['1142', '1142', 'Order quantity must be positive', 'Insufficient available stock', 'Only confirmed orders'];
+  for (const [index, guard] of guards.entries()) {
+    const { body } = await api(`/demo/guards/${guard.id}`, { method: 'POST' });
+    assert.equal(body.blocked, true, guard.label);
+    assert.match(body.message, new RegExp(expected[index]), guard.label);
+  }
+});
+
+test('the security endpoint reports qc_app and its grants', async () => {
+  const { body } = await api('/demo/security');
+  assert.match(body.account, /^qc_app@/);
+  assert.ok(body.grants.some((grant) => /EXECUTE ON PROCEDURE .*placeorder/i.test(grant)));
+  assert.ok(!body.grants.some((grant) => /\b(INSERT|UPDATE|DELETE)\b/.test(grant)));
 });

@@ -1,7 +1,7 @@
 
 -- ============================================================================
 -- PROJECT: Quick Commerce Database
--- FILE: application_procedures.sql
+-- FILE: 06_application_procedures.sql
 -- DBMS: MySQL 8.0+
 --
 -- FEATURES:
@@ -11,12 +11,14 @@
 -- 4. Customer registration
 -- 5. A deliberately unsafe "check-then-act" order on a sandbox table,
 --    used by the application's oversell stress test (teaching demo only)
--- 6. EXECUTE grants for the qc_app application account
--- 7. One-time reconciliation of reservations for the sample orders
+-- 6. COMMIT / ROLLBACK / SAVEPOINT demonstrations with a step-by-step log,
+--    used by the application's "Transactions & security" page
+-- 7. EXECUTE grants for the qc_app application account
+-- 8. One-time reconciliation of reservations for the sample orders
 --
 -- PREREQUISITE:
--- Run create_db_insert_data.sql, advanced_database_programming.sql and
--- database_security.sql first.
+-- Run 01_create_db_insert_data.sql, 03_advanced_database_programming.sql and
+-- 05_database_security.sql first.
 -- ============================================================================
 
 USE QuickCommerceDB;
@@ -641,6 +643,224 @@ BEGIN
         v_StockSeen AS StockSeen;
 END$$
 
+
+-- ----------------------------------------------------------------------------
+-- PROCEDURES 9-13: TRANSACTION CONTROL DEMONSTRATION
+-- PURPOSE:
+-- The COMMIT, ROLLBACK and SAVEPOINT scenarios of
+-- 04_transaction_management.sql, packaged so the application's
+-- "Transactions & security" page can run them and show each step.
+--
+-- Every step is recorded in a JSON variable rather than a table: variables
+-- are not affected by ROLLBACK, so the log survives the rollback it records.
+-- Each demonstration moves only one unit of stock per order line.
+-- ----------------------------------------------------------------------------
+
+-- Helper: appends a step with the current stock of one product, the total
+-- number of orders and (optionally) the number of lines in one order.
+-- Inside a transaction it sees that transaction's uncommitted changes.
+DROP PROCEDURE IF EXISTS DemoLogStep$$
+
+CREATE PROCEDURE DemoLogStep(
+    INOUT p_Log JSON,
+    IN p_Step VARCHAR(200),
+    IN p_DarkStoreID INT,
+    IN p_ProductID INT,
+    IN p_OrderID INT
+)
+BEGIN
+    DECLARE v_Available INT;
+    DECLARE v_Reserved INT;
+    DECLARE v_Orders INT;
+    DECLARE v_Lines INT;
+
+    SELECT
+        COALESCE(SUM(CASE WHEN s.StateName = 'Available' THEN i.Quantity END), 0),
+        COALESCE(SUM(CASE WHEN s.StateName = 'Reserved' THEN i.Quantity END), 0)
+    INTO v_Available, v_Reserved
+    FROM Inventory AS i
+    INNER JOIN InventoryState AS s
+        ON i.StateID = s.StateID
+    WHERE i.DarkStoreID = p_DarkStoreID
+      AND i.ProductID = p_ProductID;
+
+    SELECT COUNT(*) INTO v_Orders FROM `Order`;
+
+    SELECT COUNT(*) INTO v_Lines FROM OrderItem WHERE OrderID = p_OrderID;
+
+    SET p_Log = JSON_ARRAY_APPEND(
+        COALESCE(p_Log, JSON_ARRAY()), '$',
+        JSON_OBJECT(
+            'step', p_Step,
+            'available', v_Available,
+            'reserved', v_Reserved,
+            'orders', v_Orders,
+            'lines', IF(p_OrderID IS NULL, NULL, v_Lines)
+        )
+    );
+END$$
+
+
+-- Helper: adds a one-unit order line and moves that unit from Available to
+-- Reserved, failing if the store has no available unit.
+DROP PROCEDURE IF EXISTS DemoAddOrderLine$$
+
+CREATE PROCEDURE DemoAddOrderLine(
+    IN p_OrderID INT,
+    IN p_DarkStoreID INT,
+    IN p_ProductID INT
+)
+BEGIN
+    INSERT INTO OrderItem (OrderID, ProductID, Quantity)
+    VALUES (p_OrderID, p_ProductID, 1);
+
+    UPDATE Inventory AS i
+    INNER JOIN InventoryState AS s
+        ON i.StateID = s.StateID
+    SET i.Quantity = i.Quantity - 1
+    WHERE i.DarkStoreID = p_DarkStoreID
+      AND i.ProductID = p_ProductID
+      AND s.StateName = 'Available'
+      AND i.Quantity >= 1;
+
+    IF ROW_COUNT() = 0 THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'The chosen product is out of stock at this store';
+    END IF;
+
+    INSERT INTO Inventory (DarkStoreID, ProductID, StateID, Quantity)
+    SELECT p_DarkStoreID, p_ProductID, StateID, 1
+    FROM InventoryState
+    WHERE StateName = 'Reserved'
+    ON DUPLICATE KEY UPDATE Quantity = Inventory.Quantity + 1;
+END$$
+
+
+-- COMMIT: the order, its line and the stock movement are saved together.
+DROP PROCEDURE IF EXISTS DemoCommit$$
+
+CREATE PROCEDURE DemoCommit(
+    IN p_CustomerID INT,
+    IN p_DarkStoreID INT,
+    IN p_ProductID INT
+)
+BEGIN
+    DECLARE v_Log JSON DEFAULT JSON_ARRAY();
+    DECLARE v_OrderID INT;
+
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+        ROLLBACK;
+        RESIGNAL;
+    END;
+
+    CALL DemoLogStep(v_Log, 'Before START TRANSACTION', p_DarkStoreID, p_ProductID, NULL);
+
+    START TRANSACTION;
+
+    INSERT INTO `Order` (OrderDate, Status, CustomerID, DarkStoreID)
+    VALUES (NOW(), 'Confirmed', p_CustomerID, p_DarkStoreID);
+    SET v_OrderID = LAST_INSERT_ID();
+    CALL DemoLogStep(v_Log, 'INSERT INTO `Order` (not yet committed)', p_DarkStoreID, p_ProductID, v_OrderID);
+
+    CALL DemoAddOrderLine(v_OrderID, p_DarkStoreID, p_ProductID);
+    CALL DemoLogStep(v_Log, 'Add line: 1 unit Available -> Reserved', p_DarkStoreID, p_ProductID, v_OrderID);
+
+    COMMIT;
+    CALL DemoLogStep(v_Log, 'COMMIT: all changes are permanent', p_DarkStoreID, p_ProductID, v_OrderID);
+
+    SELECT v_Log AS Steps, v_OrderID AS OrderID;
+END$$
+
+
+-- ROLLBACK: the same steps, then every change is undone.
+DROP PROCEDURE IF EXISTS DemoRollback$$
+
+CREATE PROCEDURE DemoRollback(
+    IN p_CustomerID INT,
+    IN p_DarkStoreID INT,
+    IN p_ProductID INT
+)
+BEGIN
+    DECLARE v_Log JSON DEFAULT JSON_ARRAY();
+    DECLARE v_OrderID INT;
+
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+        ROLLBACK;
+        RESIGNAL;
+    END;
+
+    CALL DemoLogStep(v_Log, 'Before START TRANSACTION', p_DarkStoreID, p_ProductID, NULL);
+
+    START TRANSACTION;
+
+    INSERT INTO `Order` (OrderDate, Status, CustomerID, DarkStoreID)
+    VALUES (NOW(), 'Confirmed', p_CustomerID, p_DarkStoreID);
+    SET v_OrderID = LAST_INSERT_ID();
+    CALL DemoLogStep(v_Log, 'INSERT INTO `Order` (not yet committed)', p_DarkStoreID, p_ProductID, v_OrderID);
+
+    CALL DemoAddOrderLine(v_OrderID, p_DarkStoreID, p_ProductID);
+    CALL DemoLogStep(v_Log, 'Add line: 1 unit Available -> Reserved', p_DarkStoreID, p_ProductID, v_OrderID);
+
+    ROLLBACK;
+    CALL DemoLogStep(v_Log, 'ROLLBACK: the order, line and stock movement are undone', p_DarkStoreID, p_ProductID, v_OrderID);
+
+    SELECT v_Log AS Steps, NULL AS OrderID;
+END$$
+
+
+-- SAVEPOINT: a two-line order where only the second line is undone.
+-- The log tracks the second product, whose reservation is rolled back.
+DROP PROCEDURE IF EXISTS DemoSavepoint$$
+
+CREATE PROCEDURE DemoSavepoint(
+    IN p_CustomerID INT,
+    IN p_DarkStoreID INT,
+    IN p_ProductID INT,
+    IN p_SecondProductID INT
+)
+BEGIN
+    DECLARE v_Log JSON DEFAULT JSON_ARRAY();
+    DECLARE v_OrderID INT;
+
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+        ROLLBACK;
+        RESIGNAL;
+    END;
+
+    IF p_ProductID = p_SecondProductID THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'Choose two different products';
+    END IF;
+
+    CALL DemoLogStep(v_Log, 'Before START TRANSACTION', p_DarkStoreID, p_SecondProductID, NULL);
+
+    START TRANSACTION;
+
+    INSERT INTO `Order` (OrderDate, Status, CustomerID, DarkStoreID)
+    VALUES (NOW(), 'Confirmed', p_CustomerID, p_DarkStoreID);
+    SET v_OrderID = LAST_INSERT_ID();
+
+    CALL DemoAddOrderLine(v_OrderID, p_DarkStoreID, p_ProductID);
+    CALL DemoLogStep(v_Log, 'INSERT order and line 1 (first product)', p_DarkStoreID, p_SecondProductID, v_OrderID);
+
+    SAVEPOINT after_first_line;
+    CALL DemoLogStep(v_Log, 'SAVEPOINT after_first_line', p_DarkStoreID, p_SecondProductID, v_OrderID);
+
+    CALL DemoAddOrderLine(v_OrderID, p_DarkStoreID, p_SecondProductID);
+    CALL DemoLogStep(v_Log, 'Add line 2: 1 unit Available -> Reserved', p_DarkStoreID, p_SecondProductID, v_OrderID);
+
+    ROLLBACK TO SAVEPOINT after_first_line;
+    CALL DemoLogStep(v_Log, 'ROLLBACK TO SAVEPOINT: line 2 is undone', p_DarkStoreID, p_SecondProductID, v_OrderID);
+
+    COMMIT;
+    CALL DemoLogStep(v_Log, 'COMMIT: the order is saved with line 1 only', p_DarkStoreID, p_SecondProductID, v_OrderID);
+
+    SELECT v_Log AS Steps, v_OrderID AS OrderID;
+END$$
+
 DELIMITER ;
 
 
@@ -674,10 +894,19 @@ TO 'qc_app'@'localhost';
 GRANT EXECUTE ON PROCEDURE QuickCommerceDB.SimulateNaiveOrder
 TO 'qc_app'@'localhost';
 
+GRANT EXECUTE ON PROCEDURE QuickCommerceDB.DemoCommit
+TO 'qc_app'@'localhost';
+
+GRANT EXECUTE ON PROCEDURE QuickCommerceDB.DemoRollback
+TO 'qc_app'@'localhost';
+
+GRANT EXECUTE ON PROCEDURE QuickCommerceDB.DemoSavepoint
+TO 'qc_app'@'localhost';
+
 
 -- ============================================================================
 -- PART D: RECONCILE SAMPLE-ORDER RESERVATIONS
--- The sample orders in create_db_insert_data.sql were inserted directly, so
+-- The sample orders in 01_create_db_insert_data.sql were inserted directly, so
 -- some open orders have no matching reserved stock. Without this step they
 -- could not be cancelled or dispatched. For every open order line, any
 -- shortfall is moved from Available to Reserved, exactly as PlaceOrder would

@@ -6,6 +6,7 @@ import { APP_ROOT, PORT } from './config.js';
 import { pool } from './db.js';
 import { errorHandler } from './errors.js';
 import catalog from './routes/catalog.js';
+import demo from './routes/demo.js';
 import inventory from './routes/inventory.js';
 import ops from './routes/ops.js';
 import orders from './routes/orders.js';
@@ -27,6 +28,7 @@ export function createApp() {
   app.use('/api/ops', ops);
   app.use('/api/stress-test', stress);
   app.use('/api/reports', reports);
+  app.use('/api/demo', demo);
   app.use('/api', (req, res) => res.status(404).json({ error: 'Not found' }));
 
   // In production the built React client is served from the same port.

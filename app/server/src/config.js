@@ -4,16 +4,16 @@ import dotenv from 'dotenv';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 
-// app/ holds .env and the client build; the repository root holds the SQL files.
+// app/ holds .env and the client build; database/ holds the SQL scripts.
 export const APP_ROOT = path.resolve(here, '../..');
-export const REPO_ROOT = path.resolve(APP_ROOT, '..');
+export const DATABASE_DIR = path.resolve(APP_ROOT, '..', 'database');
 
 // Variables already set in the environment take precedence over .env.
 dotenv.config({ path: path.join(APP_ROOT, '.env'), quiet: true });
 
 export const DB_NAME = 'QuickCommerceDB';
 
-// Created by database_security.sql; it holds only SELECT and EXECUTE privileges.
+// Created by 05_database_security.sql; it holds only SELECT and EXECUTE privileges.
 export const APP_DB_USER = 'qc_app';
 
 export const PORT = Number(process.env.PORT || 4000);

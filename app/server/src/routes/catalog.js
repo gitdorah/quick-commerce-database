@@ -26,13 +26,6 @@ router.get('/stores', async (req, res) => {
   res.json(rows);
 });
 
-router.get('/products', async (req, res) => {
-  const [rows] = await pool.query(
-    'SELECT ProductID, Name, Price, Description FROM Product ORDER BY Name',
-  );
-  res.json(rows);
-});
-
 // The storefront catalogue for one store: every product with its sellable stock.
 router.get('/stores/:id/catalog', async (req, res) => {
   const storeId = positiveInt(req.params.id, 'store id');

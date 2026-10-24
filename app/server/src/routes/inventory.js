@@ -45,13 +45,6 @@ router.get('/', async (req, res) => {
   res.json(rows.map((row) => ({ ...row, LowStock: Boolean(row.LowStock) })));
 });
 
-router.get('/low-stock', async (req, res) => {
-  const [rows] = await pool.query(
-    'SELECT * FROM LowStockView ORDER BY AvailableQuantity, DarkStoreLocation, ProductName',
-  );
-  res.json(rows);
-});
-
 function target(body) {
   return [
     positiveInt(body?.darkStoreId, 'darkStoreId'),

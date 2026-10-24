@@ -1,11 +1,11 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { REPO_ROOT } from './config.js';
+import { DATABASE_DIR } from './config.js';
 
-const SOURCE = path.join(REPO_ROOT, 'sql_queries.sql');
+const SOURCE = path.join(DATABASE_DIR, '02_sql_queries.sql');
 
 /**
- * Reads the analytical queries from sql_queries.sql so the Reports page always
+ * Reads the analytical queries from 02_sql_queries.sql so the Reports page always
  * runs exactly the SQL that is in the assignment file. Each query is preceded
  * by a "-- QUERY n: Title" header, a CONCEPTS line and free-text notes.
  */

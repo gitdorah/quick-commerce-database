@@ -20,7 +20,7 @@ export default function Reports() {
         <div>
           <h1>Reports</h1>
           <p className="muted">
-            The analytical queries from sql_queries.sql, run read-only as qc_app.
+            The analytical queries from database/02_sql_queries.sql, run read-only as qc_app.
           </p>
         </div>
       </div>

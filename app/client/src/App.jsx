@@ -1,5 +1,6 @@
 import { NavLink, Route, Routes } from 'react-router-dom';
 import { useSession } from './context/SessionContext.jsx';
+import DatabaseDemo from './pages/DatabaseDemo.jsx';
 import MyOrders from './pages/MyOrders.jsx';
 import OpsInventory from './pages/OpsInventory.jsx';
 import OpsOrders from './pages/OpsOrders.jsx';
@@ -26,6 +27,7 @@ const NAV = [
     group: 'Database',
     links: [
       { to: '/stress', label: 'Stress test' },
+      { to: '/database', label: 'Transactions & security' },
       { to: '/reports', label: 'Reports' },
     ],
   },
@@ -80,6 +82,7 @@ export default function App() {
           <Route path="/ops" element={<OpsOrders />} />
           <Route path="/ops/inventory" element={<OpsInventory />} />
           <Route path="/stress" element={<StressTest />} />
+          <Route path="/database" element={<DatabaseDemo />} />
           <Route path="/reports" element={<Reports />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
